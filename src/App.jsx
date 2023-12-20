@@ -1,68 +1,67 @@
-
-import { useState } from "react";
-import './App.css'
+import { useState, useEffect } from "react";
+import "./index.css";
 
 const App = () => {
+  const [search, setSearch] = useState("");
+  const [weather, setWeather] = useState({});
+  const api = {
+    key: "39ab4adb78148d3e4edf430b158a8ef1",
+    base: "https://api.openweathermap.org/data/2.5/weather",
+  };
 
-    const [search, setSearch] = useState("");
-    const [weather, setWeather] = useState({});
-
-    const api = {
-        key : "fcd263b920f40b5a650c8f16731702ea",
-        base : "https://api.openweathermap.org/data/2.5/weather"
-    }
-
-    function handleSearch() {
-        fetch(`${api.base}?q=${search}&units=metric&APPID=${api.key}`)
-        .then(res=>res.json())
-        .then(d=>setWeather(d))
-        
-    }
-
-    function location() {
-        fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${api.key}`)
-        .then(res=>res.json())
-        .then(d=>setWeather(d))    
-    }
-
-    var lat;
-    var lon;
-    navigator.geolocation.getCurrentPosition(success, error);
-
-    function success(position) {
-      // The user's position is now available in the position object
-        console.log(position.coords.latitude);
-        console.log(position.coords.longitude);
-        lat=position.coords.latitude;
-        lon=position.coords.longitude;
-
-    }
-    
-    function error() {
-      console.log('Error getting user position');
-    }
-    
-
-    return(
-        <div className="main"> 
-             <div className="card">
-             <input type="search" placeholder="Enter your City" onChange={(e)=>setSearch(e.target.value)} />
-            <button onClick={handleSearch}>Search</button>
-            <button onClick={location}>Current Location</button>
-            <div>
-                { (typeof weather.main !== 'undefined')? (
-                        <div>
-                            <p>{weather.name}</p>
-                            <p>{weather.main.temp}°C</p>
-                            <p>{weather.weather[0].main}</p>
-                            <p>{weather.weather[0].description}</p>
-                        </div>
-                    ) : ("Not Found")
-                }
+  useEffect(() => {
+    const fetchWeatherByGeolocation = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            fetch(`${api.base}?lat=${latitude}&lon=${longitude}&units=metric&APPID=${api.key}`)
+              .then((res) => res.json())
+              .then((d) => setWeather(d));
+          },
+          (error) => {
+            console.error("Error getting geolocation:", error.message);
+          }
+        );
+      } else {
+        console.error("Geolocation is not supported by your browser.");
+      }
+    };
+    fetchWeatherByGeolocation();
+  }, []);
+  const handleSearch = () => {
+    fetch(`${api.base}?q=${search}&units=metric&APPID=${api.key}`)
+      .then((res) => res.json())
+      .then((d) => setWeather(d));
+  };
+  return (
+    <div className="main">
+      <div className="Card">
+        <input
+          type="Search"
+          placeholder="Enter Your City"
+          onChange={(e) => setSearch(e.target.value)}
+          className="inp"
+        />
+        <button onClick={handleSearch} className="btn">
+          Get Location
+        </button>
+        <div className="Card1">
+          {typeof weather.main !== "undefined" ? (
+            <div className="data">
+              <p>City : {weather.name}</p>
+              <p>Tempreture : {weather.main.temp} C</p>
+              <p>Weather : {weather.weather[0].main}</p>
+              <p>Weather : {weather.weather[0].description}</p>
             </div>
-            </div>
-            
+          ) : (
+            "Not Found"
+          )}
         </div>
-    )
-}
-export default App
+      </div>
+    </div>
+  );
+};
+
+export default App;
+
